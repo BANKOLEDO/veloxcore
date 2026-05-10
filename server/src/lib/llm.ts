@@ -55,6 +55,7 @@ export async function generateJSON<T>(
     .replace(/```json\s*/gi, '')
     .replace(/```\s*$/gm, '')
     .replace(/```/g, '')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
     .trim()
 
   try {
@@ -62,7 +63,8 @@ export async function generateJSON<T>(
   } catch {
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]) as T
+      const sanitized = jsonMatch[0].replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+      return JSON.parse(sanitized) as T
     }
     throw new Error(`Failed to parse LLM response as JSON: ${content.slice(0, 200)}`)
   }
