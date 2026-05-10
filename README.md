@@ -36,23 +36,19 @@
 ### 1. Local Development (Ollama — Zero Cost)
 
 ```bash
-# Install dependencies
-cd server && npm install
-cd ../client && npm install
+# Install dependencies (from root)
+pnpm install
 
 # Start Ollama (separate terminal)
 ollama pull qwen2.5
 ollama serve
 
-# From root, copy env template
+# Copy env template
 cp .env.example .env
 cp .env.example server/.env
 
-# Start server (terminal 1)
-cd server && npm run dev
-
-# Start client (terminal 2)
-cd client && npm run dev
+# Start server + client concurrently
+pnpm dev
 ```
 
 Server runs on `http://localhost:3001`, client on `http://localhost:5173`.
@@ -118,14 +114,14 @@ veloxcore/
 │       ├── routes/          # auth.ts, reviews.ts, recommendations.ts
 │       ├── lib/             # llm.ts, catalog.ts, nigerian.ts
 │       ├── middleware/       # auth.ts (JWT)
-│       ├── db/              # SQLite connection & schema
+│   ├── db/              # PostgreSQL connection & schema
 │       └── types.ts
-├── client/                  # React UI
+├── client/                  # React UI (Vite + TS)
+│   ├── public/              # PWA assets (manifest, icons, sw.js)
 │   └── src/
-│       ├── pages/           # Landing, Login, Register, Reviews, Recommendations
-│       ├── components/      # ThreeScene, Navbar, Layout, Icons
+│       ├── pages/           # Landing, Login, Register, Reviews, Recommendations, History
+│       ├── components/      # ThreeScene, Navbar, Layout, Icons, RecommendationDisplay, ReviewDisplay
 │       └── lib/             # api.ts, auth-context.tsx, useStreamingText.ts
-├── public/                  # PWA assets (manifest, icons, sw.js)
 └── .env.example
 ```
 
