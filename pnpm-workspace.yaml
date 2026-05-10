@@ -1,0 +1,7 @@
+packages:
+  - 'client'
+  - 'server'
+
+pnpm:
+  onlyBuiltDependencies:
+    - esbuild
