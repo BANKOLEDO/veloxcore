@@ -22,14 +22,8 @@ const API = import.meta.env.VITE_API_URL || '/api'
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'))
-  const [loading, setLoading] = useState(true)
-
   useEffect(() => {
-    if (!token) {
-      setLoading(false)
-      return
-    }
-    setLoading(true)
+    if (!token) return
     fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => {
         if (r.status === 401) throw new Error('Token expired')
@@ -38,7 +32,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .then((d) => { if (d?.user) setUser(d.user) })
       .catch(() => { localStorage.removeItem('token'); setToken(null); setUser(null) })
-      .finally(() => setLoading(false))
   }, [token])
 
   const authedFetch = (url: string, options?: RequestInit) => {
