@@ -8,6 +8,7 @@ import reviewRoutes from './routes/reviews.js'
 import recommendationRoutes from './routes/recommendations.js'
 
 const app = express()
+app.set('trust proxy', 1)
 const PORT = parseInt(process.env.PORT || '3001', 10)
 
 app.use(cors())
