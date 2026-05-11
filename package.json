@@ -1,6 +1,7 @@
 {
   "name": "veloxcore",
   "private": true,
+  "packageManager": "pnpm@10.10.0",
   "scripts": {
     "dev": "pnpm -r run dev",
     "build": "pnpm -r run build",
