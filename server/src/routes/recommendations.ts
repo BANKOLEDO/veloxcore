@@ -176,6 +176,7 @@ You think step by step, reason before recommending, and your explanations reveal
 
 router.get('/history', authMiddleware, async (req, res) => {
   try {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate')
     const { userId } = req.user!
     const page = Math.max(1, parseInt(req.query.page as string) || 1)
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20))

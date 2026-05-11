@@ -50,7 +50,7 @@ export async function getCatalog(query?: string) {
 }
 
 export async function getReviewHistory(page = 1, limit = 50) {
-  const res = await fetch(`${API}/reviews/history?page=${page}&limit=${limit}`, { headers: authHeaders() })
+  const res = await fetch(`${API}/reviews/history?page=${page}&limit=${limit}&_t=${Date.now()}`, { headers: authHeaders() })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.error || `Failed to load history (${res.status})`)
@@ -59,7 +59,7 @@ export async function getReviewHistory(page = 1, limit = 50) {
 }
 
 export async function getRecommendationHistory(page = 1, limit = 20) {
-  const res = await fetch(`${API}/recommendations/history?page=${page}&limit=${limit}`, { headers: authHeaders() })
+  const res = await fetch(`${API}/recommendations/history?page=${page}&limit=${limit}&_t=${Date.now()}`, { headers: authHeaders() })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.error || `Failed to load history (${res.status})`)

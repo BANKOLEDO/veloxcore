@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { toast } from 'sonner'
 import { getReviewHistory, getRecommendationHistory, deleteReview, deleteRecommendation } from '../lib/api'
 import type { RecItem } from '../types'
 
@@ -35,28 +36,35 @@ export default function HistoryPage() {
   const [total, setTotal] = useState(0)
   const [limit] = useState(50)
   const [deleting, setDeleting] = useState<number | null>(null)
+  const reqId = useRef(0)
 
   const loadData = useCallback(() => {
+    const id = ++reqId.current
     setLoading(true)
     setError('')
 
     const fetcher = tab === 'reviews' ? getReviewHistory : getRecommendationHistory
-    const key = tab === 'reviews' ? 'reviews' : 'recommendations'
 
     fetcher(page, limit)
       .then((data) => {
-        if (tab === 'reviews') setReviews(data[key] ?? [])
-        else setRecommendations(data[key] ?? [])
+        if (id !== reqId.current) return
+        if (tab === 'reviews') setReviews(data.reviews ?? [])
+        else setRecommendations(data.recommendations ?? [])
         setTotal(data.total ?? 0)
       })
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load'))
-      .finally(() => setLoading(false))
+      .catch((err) => {
+        if (id !== reqId.current) return
+        setError(err instanceof Error ? err.message : 'Failed to load')
+        toast.error(err instanceof Error ? err.message : 'Failed to load')
+      })
+      .finally(() => {
+        if (id === reqId.current) setLoading(false)
+      })
   }, [tab, page, limit])
 
   useEffect(() => { loadData() }, [loadData])
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Delete this entry?')) return
     setDeleting(id)
     try {
       if (tab === 'reviews') {
@@ -67,11 +75,35 @@ export default function HistoryPage() {
         setRecommendations((prev) => prev.filter((r) => r.id !== id))
       }
       setTotal((prev) => prev - 1)
+      toast.success('Deleted')
+      loadData()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete')
+      toast.error(err instanceof Error ? err.message : 'Failed to delete')
     } finally {
       setDeleting(null)
     }
+  }
+
+  const confirmDelete = (id: number) => {
+    toast.custom((t) => (
+      <div className="border border-neutral-800 bg-neutral-950 px-4 py-3 shadow-lg">
+        <p className="text-sm text-neutral-400 mb-3">Delete this entry?</p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => { toast.dismiss(t); handleDelete(id) }}
+            className="border border-neutral-800 px-3 py-1 text-[11px] text-red-500 hover:text-red-400 transition-colors"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t)}
+            className="border border-neutral-800 px-3 py-1 text-[11px] text-neutral-600 hover:text-neutral-400 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity })
   }
 
   const totalPages = Math.ceil(total / limit)
@@ -160,7 +192,7 @@ export default function HistoryPage() {
       {!loading && !error && tab === 'reviews' && (
         <ReviewsList
           reviews={filteredReviews}
-          onDelete={handleDelete}
+          onDelete={confirmDelete}
           deleting={deleting}
         />
       )}
@@ -168,7 +200,7 @@ export default function HistoryPage() {
       {!loading && !error && tab === 'recommendations' && (
         <RecommendationsList
           recommendations={filteredRecs}
-          onDelete={handleDelete}
+          onDelete={confirmDelete}
           deleting={deleting}
         />
       )}

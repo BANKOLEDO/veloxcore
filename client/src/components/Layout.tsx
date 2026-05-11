@@ -1,11 +1,24 @@
 import type { ReactNode } from 'react'
 import Navbar from './Navbar'
+import { Toaster } from 'sonner'
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">{children}</main>
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: '#0a0a0a',
+            border: '1px solid #262626',
+            color: '#a3a3a3',
+            fontFamily: 'ui-monospace, monospace',
+            fontSize: '12px',
+          },
+        }}
+      />
       <footer className="border-t border-neutral-900 py-5">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
