@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react'
 import Navbar from './Navbar'
+import ScrollToTop from './ScrollToTop'
 import { Toaster } from 'sonner'
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
+      <ScrollToTop />
       <main className="flex-1">{children}</main>
       <Toaster
         position="bottom-right"
