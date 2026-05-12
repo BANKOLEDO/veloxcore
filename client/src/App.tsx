@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 import { AuthProvider } from './lib/auth-context'
 
 const LandingPage = lazy(() => import('./pages/LandingPage'))
@@ -20,14 +21,16 @@ export default function App() {
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-neutral-700" />
           </div>
         }>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/reviews" element={<ProtectedRoute><ReviewsPage /></ProtectedRoute>} />
-            <Route path="/recommendations" element={<ProtectedRoute><RecommendationsPage /></ProtectedRoute>} />
-            <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
-          </Routes>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/reviews" element={<ProtectedRoute><ReviewsPage /></ProtectedRoute>} />
+              <Route path="/recommendations" element={<ProtectedRoute><RecommendationsPage /></ProtectedRoute>} />
+              <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+            </Routes>
+          </ErrorBoundary>
         </Suspense>
       </Layout>
     </AuthProvider>

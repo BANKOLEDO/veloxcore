@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password }),
     })
     const data = await res.json()
-    if (!res.ok) throw new Error(data.error || 'Login failed')
+    if (!res.ok) throw new Error(data.error || 'Wrong email or password.')
     localStorage.setItem('token', data.token)
     setToken(data.token)
     setUser(data.user)
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ name, email, password }),
     })
     const data = await res.json()
-    if (!res.ok) throw new Error(data.error || 'Registration failed')
+    if (!res.ok) throw new Error(data.error || 'Could not create account. Try again.')
     localStorage.setItem('token', data.token)
     setToken(data.token)
     setUser(data.user)
