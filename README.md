@@ -33,12 +33,28 @@
 ### Prerequisites
 - Node.js 20+
 
-### 1. Local Development (Ollama — Zero Cost)
+### 1. Groq (Free API, No Local GPU — Recommended)
+
+Set in `.env` and `server/.env`:
+
+```env
+LLM_BASE_URL=https://api.groq.com/openai/v1
+LLM_API_KEY=gsk_your_groq_key
+LLM_MODEL=llama-3.3-70b-versatile
+```
+
+Then install and run:
 
 ```bash
-# Install dependencies (from root)
 pnpm install
+pnpm dev
+```
 
+Server runs on `http://localhost:3001`, client on `http://localhost:5173`.
+
+### 2. Ollama (Zero Cost, Fully Local)
+
+```bash
 # Start Ollama (separate terminal)
 ollama pull qwen2.5
 ollama serve
@@ -47,20 +63,9 @@ ollama serve
 cp .env.example .env
 cp .env.example server/.env
 
-# Start server + client concurrently
+# Install & run
+pnpm install
 pnpm dev
-```
-
-Server runs on `http://localhost:3001`, client on `http://localhost:5173`.
-
-### 2. Groq (Free API, No Local GPU)
-
-Set in `.env` and `server/.env`:
-
-```env
-LLM_BASE_URL=https://api.groq.com/openai/v1
-LLM_API_KEY=gsk_your_groq_key
-LLM_MODEL=llama-3.3-70b-versatile
 ```
 
 ---

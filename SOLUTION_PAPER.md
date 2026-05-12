@@ -7,8 +7,8 @@
 
 Online review platforms generate massive amounts of behavioural data — ratings, reviews, browsing patterns — yet most AI systems still treat users as static profiles rather than dynamic, context-sensitive agents. This challenge asks participants to build LLM-based agents for two core tasks:
 
-- **Task A (User Modeling):** Simulate realistic reviews — capturing tone, rating behaviour, and contextual nuance — for unseen items based on user history, item metadata, and contextual signals.
-- **Task B (Recommendation):** Deliver personalised recommendations that go beyond collaborative filtering, handling cold-start, cross-domain, and multi-turn scenarios with agentic reasoning.
+- **Review Simulation:** Simulate realistic reviews — capturing tone, rating behaviour, and contextual nuance — for unseen items based on user history, item metadata, and contextual signals.
+- **Personalised Recommendations:** Deliver personalised recommendations that go beyond collaborative filtering, handling cold-start, cross-domain, and multi-turn scenarios with agentic reasoning.
 
 The competition additionally rewards solutions that contextualise behaviour to the Nigerian market — understanding local preferences, cultural references, and communication styles.
 
@@ -44,15 +44,15 @@ Rather than treating these as standard NLP tasks (text generation + ranking), we
 ┌─────────────────────────────────────────────────────┐
 │                   Client (React + Vite)              │
 │  ┌─────────────┐  ┌──────────────┐  ┌─────────────┐ │
-│  │ Landing     │  │ Task A:      │  │ Task B:     │ │
-│  │ Page + 3D   │  │ Review Gen   │  │ Rec Engine  │ │
+│  │ Landing     │  │ Review       │  │ Rec         │ │
+│  │ Page + 3D   │  │ Simulation   │  │ Engine      │ │
 │  └─────────────┘  └──────────────┘  └─────────────┘ │
 └────────────────────────┬────────────────────────────┘
                          │ HTTP
 ┌────────────────────────▼────────────────────────────┐
 │              Server (Express + TypeScript)            │
 │  ┌──────────┐  ┌──────────┐  ┌────────────────────┐ │
-│  │ Task A   │  │ Task B   │  │ Catalog (35 items, │ │
+│  │ Reviews  │  │ Recs     │  │ Catalog (35 items, │ │
 │  │ Route    │  │ Route    │  │ 7 categories, ₦NG) │ │
 │  └────┬─────┘  └────┬─────┘  └────────────────────┘ │
 │       └──────┬──────┘                                │
@@ -70,13 +70,13 @@ Rather than treating these as standard NLP tasks (text generation + ranking), we
 └──────────────────────────────────────────────────────┘
 ```
 
-### 3.2 Why Ollama + qwen2.5?
+### 3.2 LLM Provider: Groq (Default) / Ollama (Alternative)
 
-- **Zero cost:** No API calls, no credit cards, no rate limits
-- **Privacy:** All data stays local — important for simulating user behaviour
-- **Quality:** qwen2.5 7B punches above its weight, especially with structured JSON output
-- **Portability:** The docker-compose setup includes Ollama as a service — one command to run everything
-- **Flexibility:** Users can swap to any OpenAI-compatible provider (Groq for speed, GPT-4 for quality) by changing environment variables
+- **Zero cost:** Groq provides a free tier; Ollama runs entirely locally with no API costs
+- **Privacy:** With Ollama, all data stays local; Groq does not train on API data
+- **Quality:** Groq's `llama-3.3-70b` delivers fast, high-quality structured output
+- **Portability:** The system works with any OpenAI-compatible provider — swap backends by changing environment variables, no code changes needed
+- **No lock-in:** Start with Groq's free tier, switch to Ollama for offline use, or upgrade to GPT-4 — all through config
 
 ### 3.3 Nigerian Context Integration
 
@@ -93,7 +93,7 @@ This is not superficial tokenism — the module understands that a Lagos tech br
 
 ## 4. Agentic Workflow Design
 
-### 4.1 Task A — User Modeling (4-Step Process)
+### 4.1 Review Simulation — User Modeling (4-Step Process)
 
 **Step 1: Persona Analysis**
 The agent receives user data (name, age, location, interests, personality traits, past reviews) and builds a deep psychological profile. It analyses:
@@ -119,10 +119,10 @@ The final review is written in the user's authentic voice — matching vocabular
 
 **Why this works:** By exposing the reasoning chain, we get higher quality outputs AND the ability to debug/improve individual steps.
 
-### 4.2 Task B — Recommendation (4-Step Process)
+### 4.2 Recommendation — Personalised Picks (4-Step Process)
 
 **Step 1: User Modelling**
-Same deep profile construction as Task A, with special handling for cold-start users (no history). For cold-start, the agent infers preferences from:
+Same deep profile construction as Review Simulation, with special handling for cold-start users (no history). For cold-start, the agent infers preferences from:
 - Personality traits → likely product categories
 - Interests → specific product features
 - Location → culturally relevant suggestions
@@ -192,7 +192,7 @@ The module dramatically improved behavioural fidelity, especially for non-Nigeri
 
 ## 6. Results
 
-### Task A — User Modeling
+### Review Simulation
 
 | Metric | Score | Notes |
 |--------|-------|-------|
@@ -200,7 +200,7 @@ The module dramatically improved behavioural fidelity, especially for non-Nigeri
 | Rating Accuracy (RMSE) | 0.72 | Strong correlation with inferred user behaviour patterns |
 | Behavioural Fidelity | 8.5/10 | Human evaluators consistently identified reviews as "likely real" |
 
-### Task B — Recommendation
+### Recommendation
 
 | Metric | Score | Notes |
 |--------|-------|-------|
@@ -226,25 +226,33 @@ With more time and resources, we would:
 
 ## 8. Reproducibility
 
-The entire system is containerised and runnable with a single command:
+The system is quick to set up with minimal dependencies:
 
 ```bash
 git clone <repo>
 cd veloxcore
-docker compose up --build
+pnpm install
+pnpm dev
 ```
 
 Requirements:
-- Docker Desktop 4.0+
-- 8GB+ RAM (for Ollama + qwen2.5)
-- Internet connection (first run only — downloads qwen2.5 ~4GB)
+- Node.js 18+
+- PostgreSQL (Neon free tier or local)
+- Groq API key (free) or Ollama for fully local runs
+- 4GB+ RAM
 
-Alternative zero-cost setup without Docker:
+For Groq (recommended):
+```bash
+# Set in .env and server/.env:
+LLM_BASE_URL=https://api.groq.com/openai/v1
+LLM_API_KEY=gsk_your_groq_key
+LLM_MODEL=llama-3.3-70b-versatile
+```
+
+For Ollama (fully local):
 ```bash
 ollama pull qwen2.5
 ollama serve
-pnpm install
-pnpm dev
 ```
 
 The codebase is modular, typed (TypeScript), and documented. All LLM interactions go through a single `llm.ts` module — swapping providers requires changing only environment variables.
@@ -255,6 +263,6 @@ The codebase is modular, typed (TypeScript), and documented. All LLM interaction
 
 Veloxcore demonstrates that **agentic workflows** — where an LLM reasons step by step, exposes its thinking, and generates culturally contextualised output — significantly outperform direct generation for both user modeling and recommendation tasks.
 
-By focusing on Nigerian context (slang, food, music, regional differences) and building a completely free, local-first architecture, we've created a solution that is both competitively performant and immediately reproducible.
+By focusing on Nigerian context (slang, food, music, regional differences) and building a provider-agnostic, zero-cost architecture, we've created a solution that is both competitively performant and immediately reproducible.
 
 The system is not just an API — it's a framework for understanding human behaviour through the lens of LLM-based agency.

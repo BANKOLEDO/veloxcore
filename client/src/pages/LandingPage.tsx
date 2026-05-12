@@ -202,8 +202,8 @@ export default function LandingPage() {
           },
           {
             number: '03',
-            title: 'Local-First LLM',
-            desc: 'Runs on open-source models via Ollama. No API costs, no data leaving your machine. Fully containerised.',
+            title: 'LLM-Agnostic',
+            desc: 'Works with Groq, OpenAI, and any OpenAI-compatible API. No vendor lock-in — swap backends without changing code.',
           },
         ].map((f) => (
           <div key={f.number} className="bg-neutral-950 p-8 sm:p-10">
