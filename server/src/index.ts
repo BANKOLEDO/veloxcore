@@ -2,7 +2,8 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import rateLimit from 'express-rate-limit'
-import { initDb } from './db/index.js'
+import { initDb, getPool } from './db/index.js'
+import { getCatalog } from './lib/catalog.js'
 import authRoutes from './routes/auth.js'
 import reviewRoutes from './routes/reviews.js'
 import recommendationRoutes from './routes/recommendations.js'
@@ -36,6 +37,23 @@ app.get('/health', async (_req, res) => {
     res.json({ status: 'ok', db: 'connected' })
   } catch {
     res.status(503).json({ status: 'error', db: 'disconnected' })
+  }
+})
+
+app.get('/api/stats', async (_req, res) => {
+  try {
+    const pool = getPool()
+    const [reviewsRes, recsRes] = await Promise.all([
+      pool.query('SELECT COUNT(*)::int AS count FROM reviews'),
+      pool.query('SELECT COUNT(*)::int AS count FROM recommendations'),
+    ])
+    res.json({
+      reviews: parseInt(reviewsRes.rows[0]?.count ?? 0, 10),
+      recommendations: parseInt(recsRes.rows[0]?.count ?? 0, 10),
+      catalog: getCatalog().length,
+    })
+  } catch {
+    res.json({ reviews: 0, recommendations: 0, catalog: getCatalog().length })
   }
 })
 
