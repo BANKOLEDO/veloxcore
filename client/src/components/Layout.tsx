@@ -19,14 +19,11 @@ export default function Layout({ children }: { children: ReactNode }) {
           },
         }}
       />
-      <footer className="border-t border-neutral-900 py-5">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6">
-          <div className="flex items-center gap-3">
-            <span className="inline-block h-2 w-2 rounded-full bg-neutral-800" />
-            <span className="font-mono text-xs text-neutral-600">
-              Built by <span className="text-neutral-500"><a href="http://devolabanks.xyz" target="_blank" rel="noopener noreferrer">dev olabanks</a></span>
-            </span>
-          </div>
+      <footer className="border-t border-neutral-900 py-1.5 sm:py-5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 max-sm:gap-1.5 max-sm:flex-wrap">
+          <span className="font-mono text-[10px] text-neutral-600">
+            Built by <span className="text-neutral-500"><a href="http://devolabanks.xyz" target="_blank" rel="noopener noreferrer">dev olabanks</a></span>
+          </span>
           <a
             href="https://github.com/BANKOLEDO/veloxcore"
             target="_blank"
