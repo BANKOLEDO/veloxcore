@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { useStreamingText } from '../lib/useStreamingText'
 
 interface ReviewData {
@@ -7,19 +9,33 @@ interface ReviewData {
   reasoningSteps?: string[]
 }
 
+function copy(text: string, label = 'copied') {
+  navigator.clipboard.writeText(text).then(() => toast.success(label))
+}
+
 export default function ReviewDisplay({
   data,
   loading,
+  skipRequested = 0,
+  onDone,
 }: {
   data: ReviewData | null
   loading: boolean
+  skipRequested?: number
+  onDone?: () => void
 }) {
   if (loading) {
     return (
-      <div className="py-16">
+      <div className="py-16 space-y-4">
         <div className="flex items-center gap-3 text-sm text-neutral-500">
           <span className="inline-block h-2 w-2 rounded-full bg-white/50 animate-pulse" />
           veloxcore is reasoning<span className="animate-pulse">...</span>
+        </div>
+        <div className="space-y-3 animate-pulse">
+          <div className="h-4 w-2/3 rounded bg-neutral-900" />
+          <div className="h-4 w-full rounded bg-neutral-900" />
+          <div className="h-4 w-4/5 rounded bg-neutral-900" />
+          <div className="h-4 w-3/5 rounded bg-neutral-900" />
         </div>
       </div>
     )
@@ -38,12 +54,29 @@ export default function ReviewDisplay({
     )
   }
 
-  return <ReviewContent data={data} />
+  return <ReviewContent data={data} skipRequested={skipRequested} onDone={onDone} />
 }
 
-function ReviewContent({ data }: { data: ReviewData }) {
-  const { displayed: textStream, done: textDone } = useStreamingText(data.text, 12)
+function ReviewContent({ data, skipRequested, onDone }: { data: ReviewData; skipRequested: number; onDone?: () => void }) {
+  const [skipped, setSkipped] = useState(false)
+  const { displayed: textStream, done: textDone, skip } = useStreamingText(data.text, 12)
   const ratingStars = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating)
+
+  useEffect(() => {
+    if (skipRequested > 0 && !textDone && !skipped) {
+      setSkipped(true)
+      skip()
+    }
+  }, [skipRequested])
+
+  useEffect(() => {
+    if (textDone) onDone?.()
+  }, [textDone])
+
+  const handleSkip = () => {
+    setSkipped(true)
+    skip()
+  }
 
   return (
     <div className="space-y-6">
@@ -60,7 +93,19 @@ function ReviewContent({ data }: { data: ReviewData }) {
       {/* Streaming review text */}
       <div className="leading-relaxed text-neutral-200 whitespace-pre-wrap text-[15px]">
         {textStream}
-        {!textDone && <span className="ml-0.5 inline-block h-4 w-2 animate-pulse bg-neutral-400" />}
+        {!textDone && (
+          <>
+            <span className="ml-0.5 inline-block h-4 w-2 animate-pulse bg-neutral-400" />
+            {!skipped && (
+              <button
+                onClick={handleSkip}
+                className="ml-3 font-mono text-[10px] text-neutral-700 hover:text-neutral-500 transition-colors align-baseline"
+              >
+                skip
+              </button>
+            )}
+          </>
+        )}
       </div>
 
       {/* Why this rating */}
@@ -72,6 +117,26 @@ function ReviewContent({ data }: { data: ReviewData }) {
           <p className="text-sm leading-relaxed text-neutral-500">
             {data.explanation}
           </p>
+        </div>
+      )}
+
+      {/* Actions */}
+      {textDone && (
+        <div className="flex gap-3 border-t border-neutral-800 pt-5">
+          <button
+            onClick={() => copy(data.text)}
+            className="font-mono text-[11px] text-neutral-700 hover:text-neutral-400 transition-colors"
+          >
+            copy review
+          </button>
+          {data.explanation && (
+            <button
+              onClick={() => copy(data.explanation!)}
+              className="font-mono text-[11px] text-neutral-700 hover:text-neutral-400 transition-colors"
+            >
+              copy explanation
+            </button>
+          )}
         </div>
       )}
 

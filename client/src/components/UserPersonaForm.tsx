@@ -17,6 +17,7 @@ interface Props {
   loading?: boolean
   showReviewStyle?: boolean
   productSection?: ReactNode
+  initialData?: Partial<PersonaData>
 }
 
 const DEFAULT_PERSONAS: { label: string; data: Partial<PersonaData> }[] = [
@@ -63,12 +64,17 @@ const DEFAULT_PERSONAS: { label: string; data: Partial<PersonaData> }[] = [
 ]
 
 export default function UserPersonaForm({
-  onSubmit, loading, showReviewStyle = true, productSection,
+  onSubmit, loading, showReviewStyle = true, productSection, initialData,
 }: Props) {
   const [form, setForm] = useState<PersonaData>({
-    name: '', age: '', location: '', interests: '',
-    personalityTraits: '', preferredCategories: '',
-    reviewStyle: '', pastReviews: '',
+    name: initialData?.name ?? '',
+    age: initialData?.age ?? '',
+    location: initialData?.location ?? '',
+    interests: initialData?.interests ?? '',
+    personalityTraits: initialData?.personalityTraits ?? '',
+    preferredCategories: initialData?.preferredCategories ?? '',
+    reviewStyle: initialData?.reviewStyle ?? '',
+    pastReviews: initialData?.pastReviews ?? '',
   })
 
   const set = (key: keyof PersonaData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -78,10 +84,17 @@ export default function UserPersonaForm({
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); onSubmit(form) }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault()
+      onSubmit(form)
+    }
+  }
+
   const input = 'w-full border border-neutral-800 bg-neutral-900/50 px-3 py-2 text-sm text-white placeholder-neutral-700 outline-none transition-colors hover:border-neutral-600 focus:border-white'
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-4">
       <div className="flex flex-wrap gap-1">
         {DEFAULT_PERSONAS.map((p) => (
           <button key={p.label} type="button" onClick={() => loadPersona(p.data)}
