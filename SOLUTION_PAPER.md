@@ -246,7 +246,7 @@ For Groq (recommended):
 # Set in .env and server/.env:
 LLM_BASE_URL=https://api.groq.com/openai/v1
 LLM_API_KEY=gsk_your_groq_key
-LLM_MODEL=llama-3.3-70b-versatile
+LLM_MODEL=openai/gpt-oss-120b
 ```
 
 For Ollama (fully local):
