@@ -11,7 +11,44 @@ const client = new OpenAI({
   ...(isLocalProvider ? { httpAgent: new https.Agent({ rejectUnauthorized: false }) } : {}),
 })
 
-const MODEL = process.env.LLM_MODEL || 'qwen2.5'
+const MODEL_MAP: Record<string, string> = {
+  // Groq retired these on 08/16/26 (see https://console.groq.com/docs/deprecations)
+  'llama-3.3-70b-versatile': 'openai/gpt-oss-120b',
+  'llama-3.1-8b-instant': 'openai/gpt-oss-20b',
+  'llama3-70b-8192': 'openai/gpt-oss-120b',
+  'llama3-8b-8192': 'openai/gpt-oss-20b',
+  'qwen/qwen3-32b': 'openai/gpt-oss-120b',
+  'qwen/qwen3.6-27b': 'qwen/qwen3.8-27b',
+  'meta-llama/llama-4-scout-17b-16e-instruct': 'openai/gpt-oss-120b',
+  'meta-llama/llama-4-maverick-17b-128e-instruct': 'openai/gpt-oss-120b',
+  'moonshotai/kimi-k2-instruct-0905': 'openai/gpt-oss-120b',
+}
+
+function resolveModel(raw: string): string {
+  const mapped = MODEL_MAP[raw]
+  if (mapped) {
+    console.warn(`LLM model "${raw}" is deprecated/retired by Groq. Using "${mapped}" instead. Update LLM_MODEL env var.`)
+    return mapped
+  }
+  return raw
+}
+
+const MODEL = resolveModel(process.env.LLM_MODEL || 'qwen2.5')
+
+function supportsJsonMode(model: string): boolean {
+  return /gpt|llama|qwen|kimi|compound/i.test(model)
+}
+
+function isModelNotFoundError(err: unknown): boolean {
+  const e = err as { status?: number; code?: string; error?: { code?: string } }
+  return (
+    e?.status === 404 ||
+    e?.code === 'model_not_found' ||
+    e?.error?.code === 'model_not_found' ||
+    (typeof (err as Error)?.message === 'string' &&
+      /does not exist or you do not have access|model_not_found|model_decommissioned/i.test((err as Error).message))
+  )
+}
 
 const RETRY_MAX = 3
 const RETRY_BASE_MS = 1000
@@ -123,7 +160,7 @@ export async function generateJSON<T>(
           },
           { role: 'user', content: prompt },
         ],
-        response_format: MODEL.includes('gpt') ? { type: 'json_object' } : undefined,
+        response_format: supportsJsonMode(MODEL) ? { type: 'json_object' } : undefined,
         temperature: opts?.temperature ?? 0.7,
         max_tokens: opts?.maxTokens ?? 4096,
       })
@@ -135,6 +172,15 @@ export async function generateJSON<T>(
       return parsed
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err))
+      if (isModelNotFoundError(err)) {
+        // Retrying a retired/unknown model ID is pointless — fail fast
+        // with an actionable message.
+        throw new Error(
+          `LLM model "${MODEL}" not found (retired or no access). ` +
+            `Set LLM_MODEL to a supported Groq model, e.g. "openai/gpt-oss-120b" ` +
+            `(see https://console.groq.com/docs/models). Original error: ${lastError.message}`,
+        )
+      }
     }
   }
 
